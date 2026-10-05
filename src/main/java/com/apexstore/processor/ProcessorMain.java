@@ -52,6 +52,10 @@ public class ProcessorMain {
             }
 
             PaymentGatewayClient gatewayClient = new PaymentGatewayClient(gatewayProxy);
+            PaymentProcessorServiceImpl paymentProcessorService =
+                new PaymentProcessorServiceImpl(repository, gatewayClient);
+
+            System.out.println("Servicio local PaymentProcessor listo para CheckoutService");
 
             // Mantener el proceso en ejecución
             communicator.waitForShutdown();
