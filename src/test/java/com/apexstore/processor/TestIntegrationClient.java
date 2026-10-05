@@ -13,15 +13,16 @@ public class TestIntegrationClient {
     public void testIntegrationWithGateway() {
         System.out.println("=== INICIANDO PRUEBA DE INTEGRACIÓN CON PASARELA REAL (NODO 3) ===");
 
-        String dbUrl = System.getenv().getOrDefault("DB_URL", "jdbc:postgresql://localhost:5432/apexstore_db");
-        String dbUser = System.getenv().getOrDefault("DB_USER", "postgres");
-        String dbPassword = System.getenv().getOrDefault("DB_PASSWORD", "postgres");
+        ProcessorConfig config = ProcessorConfig.load();
+        String dbUrl = config.value("db.url", "DB_URL");
+        String dbUser = config.value("db.user", "DB_USER");
+        String dbPassword = config.value("db.password", "DB_PASSWORD");
 
         TransactionRepository repository = new TransactionRepository(dbUrl, dbUser, dbPassword);
 
-        // IP de ZeroTier de tu compañero
-        String gatewayZeroTierIp = "10.232.215.211"; 
-        int gatewayPort = 10000;
+        String gatewayHost = config.value("gateway.host", "GATEWAY_HOST");
+        int gatewayPort = Integer.parseInt(config.value("gateway.port", "GATEWAY_PORT"));
+        String gatewayServant = config.value("gateway.servant", "GATEWAY_SERVANT");
 
         int transactionId = (int) (System.currentTimeMillis() % 100000);
         String orderId = "ORD-REAL-001";
@@ -32,12 +33,18 @@ public class TestIntegrationClient {
         System.out.println("\n1. Guardando transacción en PostgreSQL local (PENDIENTE)...");
         repository.persistInitialTransaction(transactionId, orderId, method, amount, currency);
 
-        String proxyString = String.format("PaymentGatewayServant:default -h %s -p %d", gatewayZeroTierIp, gatewayPort);
+        String proxyString = String.format("%s:default -h %s -p %d",
+            gatewayServant, gatewayHost, gatewayPort);
         System.out.println("2. Conectando con la Pasarela en: " + proxyString);
 
         try (Communicator communicator = Util.initialize(new String[0])) {
             ObjectPrx baseProxy = communicator.stringToProxy(proxyString);
-            PaymentGatewayServicePrx gatewayProxy = PaymentGatewayServicePrx.uncheckedCast(baseProxy);
+            PaymentGatewayServicePrx gatewayProxy = PaymentGatewayServicePrx.checkedCast(baseProxy);
+            if (gatewayProxy == null) {
+                throw new IllegalStateException(
+                    "El objeto remoto no implementa PaymentGatewayService: " + proxyString
+                );
+            }
 
             PaymentGatewayClient gatewayClient = new PaymentGatewayClient(gatewayProxy);
 
@@ -51,7 +58,10 @@ public class TestIntegrationClient {
             System.out.println("----------------------------------------");
 
         } catch (Exception e) {
-            System.err.println("\n[ERROR DE CONEXIÓN] No se pudo comunicar con el Nodo 3: " + e.getMessage());
+            throw new AssertionError(
+                "No se pudo comunicar con el nodo de pasarela usando " + proxyString,
+                e
+            );
         }
     }
 }
