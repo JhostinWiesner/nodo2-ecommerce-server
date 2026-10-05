@@ -20,6 +20,11 @@ repositories {
 dependencies {
     implementation 'com.zeroc:ice:3.8.+'
     implementation 'org.postgresql:postgresql:42.7.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+}
+
+test {
+    useJUnitPlatform()
 }
 
 application {

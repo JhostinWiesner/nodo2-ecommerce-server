@@ -9,18 +9,24 @@ import com.zeroc.Ice.Util;
 public class ProcessorMain {
 
     public static void main(String[] args) {
-        // Conexión a la base de datos PostgreSQL local
+        // 1. Configuración de PostgreSQL desde variables de entorno
         String dbUrl = System.getenv().getOrDefault("DB_URL", "jdbc:postgresql://localhost:5432/apexstore_db");
         String dbUser = System.getenv().getOrDefault("DB_USER", "postgres");
         String dbPassword = System.getenv().getOrDefault("DB_PASSWORD", "postgres");
 
+        // 2. Configuración de Red/Endpoints para la Pasarela (Nodo 3) y Callback
+        String gatewayIp = "10.232.215.211";
+        String gatewayPort = "10000";
+        String callbackPort = "10001";
+
         TransactionRepository repository = new TransactionRepository(dbUrl, dbUser, dbPassword);
 
         try (Communicator communicator = Util.initialize(args)) {
-            // 1. Iniciar servidor ICE para escuchar Callbacks en puerto 10001
+            // 3. Iniciar servidor ICE para escuchar Callbacks (Puerto 10001 por defecto)
+            String callbackEndpoints = String.format("default -p %s", callbackPort);
             ObjectAdapter adapter = communicator.createObjectAdapterWithEndpoints(
                 "ProcessorCallbackAdapter", 
-                "default -p 10001"
+                callbackEndpoints
             );
 
             TransactionNotifierI servant = new TransactionNotifierI(repository);
@@ -28,16 +34,18 @@ public class ProcessorMain {
             adapter.activate();
 
             System.out.println("=== PaymentProcessor activo ===");
-            System.out.println("Escuchando callbacks en el puerto 10001...");
+            System.out.println("Escuchando callbacks en el puerto: " + callbackPort);
 
-            // 2. Conectar Proxy cliente hacia PaymentGateway (Nodo 3 en puerto 10000)
-            // (Cambiar 'localhost' por la IP de ZeroTier de la pasarela durante las pruebas en red)
-            ObjectPrx baseProxy = communicator.stringToProxy("PaymentGatewayAdapter:default -h localhost -p 10000");
-            PaymentGatewayServicePrx gatewayProxy = PaymentGatewayServicePrx.checkedCast(baseProxy);
+            // 4. Crear Proxy cliente hacia PaymentGateway (Nodo 3)
+            String proxyString = String.format("PaymentGatewayServant:default -h %s -p %s", gatewayIp, gatewayPort);
+            System.out.println("Configurado proxy hacia Pasarela en: " + proxyString);
+
+            ObjectPrx baseProxy = communicator.stringToProxy(proxyString);
+            PaymentGatewayServicePrx gatewayProxy = PaymentGatewayServicePrx.uncheckedCast(baseProxy);
 
             PaymentGatewayClient gatewayClient = new PaymentGatewayClient(gatewayProxy);
 
-            // Mantener el servidor activo
+            // Mantener el proceso en ejecución
             communicator.waitForShutdown();
         }
     }
