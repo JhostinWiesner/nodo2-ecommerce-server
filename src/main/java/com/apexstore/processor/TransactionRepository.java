@@ -22,8 +22,8 @@ public class TransactionRepository {
 
     // Registra la transacción inicial en estado PENDIENTE
     public void persistInitialTransaction(int transactionId, String orderId, String method, String amount, String currency) {
-        String sql = "INSERT INTO transacciones (id_transaccion, id_orden, metodo_pago, monto, estado, detalle_respuesta) " +
-                     "VALUES (?, ?, ?, ?::numeric, 'PENDIENTE', ?) " +
+        String sql = "INSERT INTO transacciones (id_transaccion, id_orden, metodo_pago, monto, moneda, estado) " +
+                     "VALUES (?, ?, ?, ?::numeric, ?, 'PENDIENTE') " +
                      "ON CONFLICT (id_transaccion) DO NOTHING";
 
         try (Connection conn = getConnection();
@@ -33,7 +33,7 @@ public class TransactionRepository {
             stmt.setString(2, orderId);
             stmt.setString(3, method);
             stmt.setString(4, amount);
-            stmt.setString(5, "Moneda: " + currency);
+            stmt.setString(5, currency);
 
             stmt.executeUpdate();
             System.out.println("[DB] Transacción registrada (PENDIENTE): TxID " + transactionId);
@@ -44,15 +44,16 @@ public class TransactionRepository {
     }
 
     // Actualiza el estado cuando llega el Callback asincrónico
-    public void updateTransactionResult(int transactionId, String status, String detail) {
-        String sql = "UPDATE transacciones SET estado = ?, detalle_respuesta = ? WHERE id_transaccion = ?";
+    public void updateTransactionResult(int transactionId, String status, String externalRef, String detail) {
+        String sql = "UPDATE transacciones SET estado = ?, referencia_externa = ?, detalle_respuesta = ? WHERE id_transaccion = ?";
 
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, status);
-            stmt.setString(2, detail);
-            stmt.setInt(3, transactionId);
+            stmt.setString(2, externalRef);
+            stmt.setString(3, detail);
+            stmt.setInt(4, transactionId);
 
             stmt.executeUpdate();
             System.out.println("[DB] Transacción actualizada vía Callback: TxID " + transactionId + " -> " + status);

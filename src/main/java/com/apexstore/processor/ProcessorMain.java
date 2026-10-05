@@ -10,11 +10,11 @@ public class ProcessorMain {
 
     public static void main(String[] args) {
         // Conexión a la base de datos PostgreSQL local
-        TransactionRepository repository = new TransactionRepository(
-            "jdbc:postgresql://localhost:5432/apexstore_db",
-            "postgres",
-            "postgres"
-        );
+        String dbUrl = System.getenv().getOrDefault("DB_URL", "jdbc:postgresql://localhost:5432/apexstore_db");
+        String dbUser = System.getenv().getOrDefault("DB_USER", "postgres");
+        String dbPassword = System.getenv().getOrDefault("DB_PASSWORD", "postgres");
+
+        TransactionRepository repository = new TransactionRepository(dbUrl, dbUser, dbPassword);
 
         try (Communicator communicator = Util.initialize(args)) {
             // 1. Iniciar servidor ICE para escuchar Callbacks en puerto 10001
