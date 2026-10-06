@@ -17,7 +17,7 @@ public class PaymentProcessorServiceImpl implements IPaymentProcessorService {
     }
 
     @Override
-    public AckResponse beginOrderPayment(String orderId, String method, String amount, String currency) {
+    public AckResponse payOrder(String orderId, String method, String amount, String currency) {
         int transactionId = transactionIdGenerator.getAndIncrement();
 
         repository.persistInitialTransaction(transactionId, orderId, method, amount, currency);

@@ -1,6 +1,7 @@
 package com.apexstore.processor;
 
 import com.apexstore.generated.PaymentGateway.PaymentGatewayServicePrx;
+import com.apexstore.checkout.CheckoutServer;
 import com.zeroc.Ice.Communicator;
 import com.zeroc.Ice.ObjectAdapter;
 import com.zeroc.Ice.ObjectPrx;
@@ -54,6 +55,8 @@ public class ProcessorMain {
             PaymentGatewayClient gatewayClient = new PaymentGatewayClient(gatewayProxy);
             PaymentProcessorServiceImpl paymentProcessorService =
                 new PaymentProcessorServiceImpl(repository, gatewayClient);
+
+            CheckoutServer.register(communicator, paymentProcessorService, CheckoutServer.DEFAULT_ENDPOINTS);
 
             System.out.println("Servicio local PaymentProcessor listo para CheckoutService");
 
