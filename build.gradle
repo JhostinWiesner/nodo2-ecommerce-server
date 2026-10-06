@@ -20,7 +20,9 @@ repositories {
 dependencies {
     implementation 'com.zeroc:ice:3.8.+'
     implementation 'org.postgresql:postgresql:42.7.2'
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 test {
@@ -43,4 +45,16 @@ task runCheckout(type: JavaExec) {
     description = "Ejecuta el servicio de CheckoutService"
     classpath = sourceSets.main.runtimeClasspath
     mainClass = 'com.apexstore.checkout.CheckoutMain'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+// ---- Cliente de prueba por Ice ----
+tasks.register('runCheckoutClient', JavaExec) {
+    group = 'application'
+    description = 'Envía órdenes de prueba a CheckoutService (ProcessorMain debe estar corriendo)'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.apexstore.checkout.CheckoutClientDemo'
 }
