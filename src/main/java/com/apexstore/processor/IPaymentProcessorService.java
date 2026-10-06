@@ -16,5 +16,5 @@ public interface IPaymentProcessorService {
      * @param currency Moneda de la transacción (ej. "USD", "COP")
      * @return AckResponse Acuse de recibo síncrono que indica si la pasarela aceptó o rechazó la solicitud inicial
      */
-    AckResponse beginOrderPayment(String orderId, String method, String amount, String currency);
+    AckResponse payOrder(String orderId, String method, String amount, String currency);
 }
