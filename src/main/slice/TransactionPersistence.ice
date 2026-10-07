@@ -4,8 +4,7 @@ module TransactionPersistence
 {
     interface TransactionPersistenceService
     {
-        void persistPgTransaction(
-            int transactionId,
+        int persistPgTransaction(
             string orderId,
             string method,
             string amount,

@@ -12,15 +12,13 @@ public class TransactionPersistenceClient {
         this.persistenceProxy = persistenceProxy;
     }
 
-    public void persistPgTransaction(
-            int transactionId,
+    public int persistPgTransaction(
             String orderId,
             String method,
             String amount,
             String currency) {
 
-        persistenceProxy.persistPgTransaction(
-            transactionId,
+        return persistenceProxy.persistPgTransaction(
             orderId,
             method,
             amount,

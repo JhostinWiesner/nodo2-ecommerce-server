@@ -83,6 +83,8 @@ public class ProcessorMain {
 
             PaymentProcessorServiceImpl paymentProcessorService =
                 new PaymentProcessorServiceImpl(persistenceClient, gatewayClient);
+
+            CheckoutServer.register(communicator, paymentProcessorService, CheckoutServer.DEFAULT_ENDPOINTS);
             
             System.out.println("=== PaymentProcessor activo ===");
             System.out.println("Escuchando callbacks en el puerto: " + callbackPort);

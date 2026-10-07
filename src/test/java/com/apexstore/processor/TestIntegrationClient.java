@@ -23,7 +23,6 @@ public class TestIntegrationClient {
         int persistencePort = Integer.parseInt(config.value("persistence.port", "PERSISTENCE_PORT"));
         String persistenceServant = config.value("persistence.servant", "PERSISTENCE_SERVANT");
 
-        int transactionId = (int) (System.currentTimeMillis() % 100000);
         String orderId = "ORD-REAL-001";
         String method = "STRIPE";
         String amount = "250.50";
@@ -46,8 +45,7 @@ public class TestIntegrationClient {
             System.out.println("\n1. Guardando transacción mediante el nodo de persistencia...");
             TransactionPersistenceClient persistenceClient =
                 new TransactionPersistenceClient(persistenceProxy);
-            persistenceClient.persistPgTransaction(
-                transactionId, orderId, method, amount, currency);
+            int transactionId = persistenceClient.persistPgTransaction(orderId, method, amount, currency);
 
             String proxyString = String.format("%s:default -h %s -p %d",
                 gatewayServant, gatewayHost, gatewayPort);
